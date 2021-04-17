@@ -6,7 +6,7 @@ inputs:
     description: GitHub Token used to interact with GitHub API
     required: true
   IGNORE_PATHS:
-    description: GitHub Token used to interact with GitHub API
+    description: Paths to ignore 
     required: false
 runs:
   using: node12
