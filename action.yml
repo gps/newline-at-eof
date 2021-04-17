@@ -1,0 +1,13 @@
+name: 'Newline At EOF'
+description: 'It ensures that files end with exactly 1 newline at end of file'
+author: 'Gopal Sharma <gps@surya-soft.com>'
+inputs:
+  GH_TOKEN:
+    description: GitHub Token used to interact with GitHub API
+    required: true
+  IGNORE_PATHS:
+    description: GitHub Token used to interact with GitHub API
+    required: false
+runs:
+  using: node12
+  main: 'dist/index.js'
