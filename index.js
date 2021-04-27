@@ -54,7 +54,7 @@ async function run() {
     ignorePaths = JSON.parse(ignorePaths);
   }
 
-  core.info('ignorePaths' + JSON.stringify(ignorePaths));
+  core.info('Ignore File Patterns: ' + JSON.stringify(ignorePaths));
 
   let commitMessage = core.getInput('COMMIT_MESSAGE');
   if (!commitMessage) {
@@ -93,7 +93,7 @@ async function run() {
       repo
     );
 
-    core.info('changedFilePaths ' + JSON.stringify(changedFilePaths));
+    core.info('Changed Files paths: ' + JSON.stringify(changedFilePaths));
 
     // Removec files matching ignore paths regex
     let filesToCheck = changedFilePaths.map((e) => {
@@ -105,7 +105,7 @@ async function run() {
       return e;
     });
 
-    core.info('filesToCheck ' + JSON.stringify(filesToCheck));
+    core.info('Files to check: ' + JSON.stringify(filesToCheck));
 
     // Store modified files
 
@@ -127,7 +127,7 @@ async function run() {
     }
 
     // Log Changed files
-    core.info('filesToCommit: ' + JSON.stringify(filesToCommit));
+    core.info('Files to commit: ' + JSON.stringify(filesToCommit));
 
     // Generate DIff and commit changes
     const diff = await exec.exec('git', ['diff', '--quiet'], {
