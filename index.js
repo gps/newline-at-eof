@@ -12,11 +12,7 @@ function matchExact(r, str) {
 }
 
 function fixNewLineEOF(b) {
-  // If file is empty
-  if (b.length < 1) {
-    return b;
-  }
-  // If file is not empty
+  // Replace all trailing whitespaces
   b = b.replace(/[ \t\n]*$/, '\n');
 
   if (b.length === 1) {
@@ -97,24 +93,33 @@ async function run() {
 
   core.info('filesToCheck ' + JSON.stringify(filesToCheck));
 
+  // Store modified files
+
+  const filesToCommit = [];
+
   // Perform EOF newline check
   for (let i = 0; i < filesToCheck.length; i++) {
     if (filesToCheck[i] !== null) {
-      let data = fs.readFileSync(filesToCheck[i], {
+      const data = fs.readFileSync(filesToCheck[i], {
         encoding: 'utf8',
         flag: 'r'
       });
-      data = fixNewLineEOF(data);
-      fs.writeFileSync(filesToCheck[i], data, 'utf8');
+      const fixedData = fixNewLineEOF(data);
+      if (data !== fixedData) {
+        filesToCommit.push(filesToCheck[i]);
+        fs.writeFileSync(filesToCheck[i], fixedData, 'utf8');
+      }
     }
   }
+
+  // Log Changed files
+  core.info('filesToCommit: ' + JSON.stringify(filesToCommit));
 
   // Generate DIff and commit changes
   const diff = await exec.exec('git', ['diff', '--quiet'], {
     ignoreReturnCode: true
   });
 
-  core.info(JSON.stringify(diff));
 
   if (diff) {
     await core.group('push changes', async () => {
@@ -123,7 +128,7 @@ async function run() {
         `${env.GITHUB_ACTOR}@users.noreply.github.com`
       );
       await git.addConfig('user.name', env.GITHUB_ACTOR);
-      await git.add('./');
+      await git.add(filesToCommit);
       await git.commit('Fixed Trailing Whitespaces and EOF Newline');
       await git.push('repo', branch);
     });
