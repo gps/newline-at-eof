@@ -55,7 +55,12 @@ async function run() {
   }
 
   core.info('ignorePaths' + JSON.stringify(ignorePaths));
-
+  
+  const url = `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}.git`.replace(
+    /^https:\/\//,
+    `https://x-access-token:${token}@`
+  );
+  
   let branch;
   if (github.context.eventName == 'pull_request') {
     branch = github.context.payload.pull_request.head.ref;
