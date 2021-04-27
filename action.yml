@@ -8,6 +8,9 @@ inputs:
   IGNORE_PATHS:
     description: Paths to ignore 
     required: false
+  COMMIT_MESSAGE:
+    description: Specify commit message 
+    required: false
 runs:
   using: node12
   main: 'dist/index.js'
