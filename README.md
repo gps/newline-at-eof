@@ -10,11 +10,23 @@ The GitHub token used to authenticate with GitHub.
 
 **Required**
 
-### `IGNORE_PATHS`
+### `IGNORE_FILE_PATTERNS`
 
 Path to ignore while checkking for newline at EOF.
 
 **Optional**
+
+### `COMMIT_MESSAGE`
+
+Commit message to post when making a fix commit
+
+**Required**
+
+**Default Value**
+
+If unspecified, it defaults to the following message:
+
+"Fixed Trailing Whitespaces and EOF Newline."
 
 ## Example Usage
 
@@ -23,5 +35,10 @@ Path to ignore while checkking for newline at EOF.
   uses: gps/newline-at-eof@master
   with:
     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    IGNORE_PATHS: ${{ 'dist/.* package-lock.json' }}
+    IGNORE_FILE_PATTERNS: |
+      [
+        "dist/.*",
+        "package-lock.json"
+      ]
+    COMMIT_MESSAGE: 'Fixed EOF Newline'
 ```
