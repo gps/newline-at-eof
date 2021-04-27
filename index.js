@@ -50,6 +50,8 @@ async function run() {
   let ignorePaths = core.getInput('IGNORE_FILE_PATTERNS');
   if (!ignorePaths) {
     ignorePaths = [];
+  } else {
+    ignorePaths = JSON.parse(ignorePaths);
   }
 
   core.info('ignorePaths' + JSON.stringify(ignorePaths));
