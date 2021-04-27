@@ -55,92 +55,95 @@ async function run() {
   }
 
   core.info('ignorePaths' + JSON.stringify(ignorePaths));
-  
-  const url = `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}.git`.replace(
-    /^https:\/\//,
-    `https://x-access-token:${token}@`
-  );
-  
-  let branch;
-  if (github.context.eventName == 'pull_request') {
-    branch = github.context.payload.pull_request.head.ref;
-  } else {
-    branch = github.context.ref.replace('refs/heads/', '');
-  }
+  try{
+    const url = `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}.git`.replace(
+      /^https:\/\//,
+      `https://x-access-token:${token}@`
+    );
 
-  const git = simpleGit();
-  await git.addRemote('repo', url);
-
-  const octokit = github.getOctokit(token);
-  const { context = {} } = github;
-  const { pull_request } = context.payload;
-
-  const owner = env.GITHUB_REPOSITORY.split('/')[0];
-  const repo = env.GITHUB_REPOSITORY.split('/')[1];
-
-  const changedFilePaths = await getChangedFilesPaths(
-    pull_request,
-    octokit,
-    owner,
-    repo
-  );
-
-  core.info('changedFilePaths ' + JSON.stringify(changedFilePaths));
-
-  // Removec files matching ignore paths regex
-  let filesToCheck = changedFilePaths.map((e) => {
-    for (let i = 0; i < ignorePaths.length; i++) {
-      if (matchExact(ignorePaths[i], e)) {
-        return null;
-      }
+    let branch;
+    if (github.context.eventName == 'pull_request') {
+      branch = github.context.payload.pull_request.head.ref;
+    } else {
+      branch = github.context.ref.replace('refs/heads/', '');
     }
-    return e;
-  });
 
-  core.info('filesToCheck ' + JSON.stringify(filesToCheck));
+    const git = simpleGit();
+    await git.addRemote('repo', url);
 
-  // Store modified files
+    const octokit = github.getOctokit(token);
+    const { context = {} } = github;
+    const { pull_request } = context.payload;
 
-  const filesToCommit = [];
+    const owner = env.GITHUB_REPOSITORY.split('/')[0];
+    const repo = env.GITHUB_REPOSITORY.split('/')[1];
 
-  // Perform EOF newline check
-  for (let i = 0; i < filesToCheck.length; i++) {
-    if (filesToCheck[i] !== null) {
-      const data = fs.readFileSync(filesToCheck[i], {
-        encoding: 'utf8',
-        flag: 'r'
-      });
-      const fixedData = fixNewLineEOF(data);
-      if (data !== fixedData) {
-        filesToCommit.push(filesToCheck[i]);
-        fs.writeFileSync(filesToCheck[i], fixedData, 'utf8');
+    const changedFilePaths = await getChangedFilesPaths(
+      pull_request,
+      octokit,
+      owner,
+      repo
+    );
+
+    core.info('changedFilePaths ' + JSON.stringify(changedFilePaths));
+
+    // Removec files matching ignore paths regex
+    let filesToCheck = changedFilePaths.map((e) => {
+      for (let i = 0; i < ignorePaths.length; i++) {
+        if (matchExact(ignorePaths[i], e)) {
+          return null;
+        }
       }
-    }
-  }
-
-  // Log Changed files
-  core.info('filesToCommit: ' + JSON.stringify(filesToCommit));
-
-  // Generate DIff and commit changes
-  const diff = await exec.exec('git', ['diff', '--quiet'], {
-    ignoreReturnCode: true
-  });
-
-
-  if (diff) {
-    await core.group('push changes', async () => {
-      await git.addConfig(
-        'user.email',
-        `${env.GITHUB_ACTOR}@users.noreply.github.com`
-      );
-      await git.addConfig('user.name', env.GITHUB_ACTOR);
-      await git.add(filesToCommit);
-      await git.commit('Fixed Trailing Whitespaces and EOF Newline');
-      await git.push('repo', branch);
+      return e;
     });
-  } else {
-    console.log('No changes to make');
+
+    core.info('filesToCheck ' + JSON.stringify(filesToCheck));
+
+    // Store modified files
+
+    const filesToCommit = [];
+
+    // Perform EOF newline check
+    for (let i = 0; i < filesToCheck.length; i++) {
+      if (filesToCheck[i] !== null) {
+        const data = fs.readFileSync(filesToCheck[i], {
+          encoding: 'utf8',
+          flag: 'r'
+        });
+        const fixedData = fixNewLineEOF(data);
+        if (data !== fixedData) {
+          filesToCommit.push(filesToCheck[i]);
+          fs.writeFileSync(filesToCheck[i], fixedData, 'utf8');
+        }
+      }
+    }
+
+    // Log Changed files
+    core.info('filesToCommit: ' + JSON.stringify(filesToCommit));
+
+    // Generate DIff and commit changes
+    const diff = await exec.exec('git', ['diff', '--quiet'], {
+      ignoreReturnCode: true
+    });
+
+    if (diff) {
+      await core.group('push changes', async () => {
+        await git.addConfig(
+          'user.email',
+          `${env.GITHUB_ACTOR}@users.noreply.github.com`
+        );
+        await git.addConfig('user.name', env.GITHUB_ACTOR);
+        await git.add(filesToCommit);
+        await git.commit('Fixed Trailing Whitespaces and EOF Newline');
+        await git.push('repo', branch);
+      });
+    } else {
+      console.log('No changes to make');
+    }
+  } catch(error){
+    core.setFailed(error);
   }
+  
 }
 
 run();
