@@ -65,7 +65,7 @@ async function run() {
 
   let commitMessage = core.getInput('COMMIT_MESSAGE');
   if (!commitMessage) {
-    commitMessage = 'Fixed Trailing Whitespaces and EOF Newline';
+    commitMessage = 'Fix Trailing Whitespaces and EOF Newline';
   }
 
   try {
