@@ -62,7 +62,13 @@ async function run() {
   }
 
   core.info('ignorePaths' + JSON.stringify(ignorePaths));
-  try{
+
+  let commitMessage = core.getInput('COMMIT_MESSAGE');
+  if (!commitMessage) {
+    commitMessage = 'Fixed Trailing Whitespaces and EOF Newline';
+  }
+
+  try {
     const url = `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}.git`.replace(
       /^https:\/\//,
       `https://x-access-token:${token}@`
@@ -143,16 +149,15 @@ async function run() {
         );
         await git.addConfig('user.name', env.GITHUB_ACTOR);
         await git.add(filesToCommit);
-        await git.commit('Fixed Trailing Whitespaces and EOF Newline');
+        await git.commit(commitMessage);
         await git.push('repo', branch);
       });
     } else {
       console.log('No changes to make');
     }
-  } catch(error){
+  } catch (error) {
     core.setFailed(error);
   }
-  
 }
 
 run();
