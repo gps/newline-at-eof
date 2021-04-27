@@ -70,6 +70,8 @@ async function run() {
 
     const git = simpleGit();
     await git.addRemote('repo', url);
+    await git.fetch('repo');
+    await git.checkout(branch);
 
     const octokit = github.getOctokit(token);
     const { context = {} } = github;
