@@ -26,7 +26,7 @@ Commit message to post when making a fix commit
 
 If unspecified, it defaults to the following message:
 
-"Fixed Trailing Whitespaces and EOF Newline."
+"Fix formatting"
 
 ## Example Usage
 
