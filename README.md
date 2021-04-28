@@ -40,5 +40,5 @@ If unspecified, it defaults to the following message:
         "dist/.*",
         "package-lock.json"
       ]
-    COMMIT_MESSAGE: 'Fixed EOF Newline'
+    COMMIT_MESSAGE: 'Fix formatting'
 ```

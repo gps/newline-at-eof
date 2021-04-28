@@ -6,10 +6,10 @@ inputs:
     description: GitHub Token used to interact with GitHub API
     required: true
   IGNORE_FILE_PATTERNS:
-    description: Paths to ignore 
+    description: Regular expressions for the files to be ignored. The inputs are specified within square brackets where each input regular expression is enclosed within double quotes, comma separated and with correct indentations.
     required: false
   COMMIT_MESSAGE:
-    description: Specify commit message 
+    description: Commit message to use when commiting fixes.
     required: false
 runs:
   using: node12
