@@ -2,7 +2,7 @@
 
 A GitHub Action that ensures that files end with exactly 1 newline at end of file.
 
-This Action runs only on `Pull Requests` and will fail if executed on push to `branch` events.
+This Action runs only on files modified in `Pull Requests`. It will fail if executed on other events.
 
 ## Inputs
 
