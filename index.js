@@ -72,7 +72,8 @@ async function run() {
     if (github.context.eventName == 'pull_request') {
       branch = github.context.payload.pull_request.head.ref;
     } else {
-      throw new Error('This action will only work on Pull Requests. Exiting.');
+      core.error('This action will only work on Pull Requests. Exiting.');
+      return;
     }
 
     const git = simpleGit();
