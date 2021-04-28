@@ -79,7 +79,7 @@ async function run() {
     if (github.context.eventName == 'pull_request') {
       branch = github.context.payload.pull_request.head.ref;
     } else {
-      branch = github.context.ref.replace('refs/heads/', '');
+      throw new Error('This action will only work on Pull Requests. Exiting.');
     }
 
     const git = simpleGit();
@@ -116,7 +116,6 @@ async function run() {
     core.info('Files to check: ' + JSON.stringify(filesToCheck));
 
     // Store modified files
-
     const filesToCommit = [];
 
     // Perform EOF newline check
