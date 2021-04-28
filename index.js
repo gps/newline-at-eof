@@ -26,7 +26,7 @@ function fixNewLineEOF(b) {
   return b;
 }
 
-async function getChangedFilesPaths() {
+async function getChangedFilesPaths(token) {
   const octokit = github.getOctokit(token);
   const { context = {} } = github;
   const { pull_request } = context.payload;
@@ -52,7 +52,7 @@ async function getChangedFilesPaths() {
   return changedFilePaths;
 }
 
-async function checkoutToBranch(branch) {
+async function checkoutToBranch(branch, token) {
   const url = `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}.git`.replace(
     /^https:\/\//,
     `https://x-access-token:${token}@`
@@ -65,7 +65,7 @@ async function checkoutToBranch(branch) {
   return git;
 }
 
-function fixFiles(filesToCheck) {
+function checkFilesForEOF(filesToCheck) {
   const filesToCommit = [];
 
   for (let i = 0; i < filesToCheck.length; i++) {
@@ -132,10 +132,10 @@ async function run() {
       return;
     }
 
-    const git = await checkoutToBranch(branch);
+    const git = await checkoutToBranch(branch, token);
 
     // Extract files that changed in PR.
-    const changedFilePaths = await getChangedFilesPaths();
+    const changedFilePaths = await getChangedFilesPaths(token);
 
     core.info('Changed files paths: ' + JSON.stringify(changedFilePaths));
 
@@ -152,7 +152,7 @@ async function run() {
     core.info('Files to check: ' + JSON.stringify(filesToCheck));
 
     // Store modified files
-    const filesToCommit = fixFiles(filesToCheck);
+    const filesToCommit = checkFilesForEOF(filesToCheck);
 
     // Log Changed files
     core.info('Files to commit: ' + JSON.stringify(filesToCommit));
