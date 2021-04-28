@@ -55,6 +55,8 @@ async function getChangedFilesPaths(pull_request, octokit, owner, repo) {
 async function run() {
   const token = core.getInput('GH_TOKEN');
   let ignorePaths = core.getInput('IGNORE_FILE_PATTERNS');
+  let commitMessage = core.getInput('COMMIT_MESSAGE');
+
   if (!ignorePaths) {
     ignorePaths = [];
   } else {
@@ -63,9 +65,8 @@ async function run() {
 
   core.info('Ignore File Patterns: ' + JSON.stringify(ignorePaths));
 
-  let commitMessage = core.getInput('COMMIT_MESSAGE');
   if (!commitMessage) {
-    commitMessage = 'Fix Trailing Whitespaces and EOF Newline';
+    commitMessage = 'Fix formatting';
   }
 
   try {
