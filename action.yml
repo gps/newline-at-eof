@@ -1,5 +1,5 @@
 name: 'Newline At EOF'
-description: 'It ensures that files end with exactly 1 newline at end of file'
+description: 'Ensures all files that have changed in a PR have exactly 1 newline at EOF'
 author: 'Gopal Sharma <gps@surya-soft.com>'
 inputs:
   GH_TOKEN:
