@@ -26,7 +26,14 @@ function fixNewLineEOF(b) {
   return b;
 }
 
-async function getChangedFilesPaths(pull_request, octokit, owner, repo) {
+async function getChangedFilesPaths() {
+  const octokit = github.getOctokit(token);
+  const { context = {} } = github;
+  const { pull_request } = context.payload;
+
+  const owner = env.GITHUB_REPOSITORY.split('/')[0];
+  const repo = env.GITHUB_REPOSITORY.split('/')[1];
+
   const { data: pullRequestDiff } = await octokit.pulls.get({
     owner,
     repo,
@@ -45,6 +52,60 @@ async function getChangedFilesPaths(pull_request, octokit, owner, repo) {
   return changedFilePaths;
 }
 
+async function checkoutToBranch(branch) {
+  const url = `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}.git`.replace(
+    /^https:\/\//,
+    `https://x-access-token:${token}@`
+  );
+
+  const git = simpleGit();
+  await git.addRemote('repo', url);
+  await git.fetch('repo');
+  await git.checkout(branch);
+  return git;
+}
+
+function fixFiles(filesToCheck) {
+  const filesToCommit = [];
+
+  for (let i = 0; i < filesToCheck.length; i++) {
+    if (filesToCheck[i] !== null) {
+      const data = fs.readFileSync(filesToCheck[i], {
+        encoding: 'utf8',
+        flag: 'r'
+      });
+      const fixedData = fixNewLineEOF(data);
+      if (data !== fixedData) {
+        filesToCommit.push(filesToCheck[i]);
+        fs.writeFileSync(filesToCheck[i], fixedData, 'utf8');
+      }
+    }
+  }
+
+  return filesToCommit;
+}
+
+async function commitChanges(filesToCommit, commitMessage, git, branch) {
+  const diff = await exec.exec('git', ['diff', '--quiet'], {
+    ignoreReturnCode: true
+  });
+
+  if (diff) {
+    await core.group('push changes', async () => {
+      await git.addConfig(
+        'user.email',
+        `${env.GITHUB_ACTOR}@users.noreply.github.com`
+      );
+      await git.addConfig('user.name', env.GITHUB_ACTOR);
+      await git.add(filesToCommit);
+      await git.commit(commitMessage);
+      await git.push('repo', branch);
+    });
+  } else {
+    console.log('No changes to make');
+  }
+}
+
 async function run() {
   const token = core.getInput('GH_TOKEN');
   let ignorePaths = core.getInput('IGNORE_FILE_PATTERNS');
@@ -55,7 +116,6 @@ async function run() {
   } else {
     ignorePaths = JSON.parse(ignorePaths);
   }
-
   core.info('Ignore File Patterns: ' + JSON.stringify(ignorePaths));
 
   if (!commitMessage) {
@@ -63,11 +123,7 @@ async function run() {
   }
 
   try {
-    const url = `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}.git`.replace(
-      /^https:\/\//,
-      `https://x-access-token:${token}@`
-    );
-
+    // Extract branch name if pull request else break execution.
     let branch;
     if (github.context.eventName == 'pull_request') {
       branch = github.context.payload.pull_request.head.ref;
@@ -76,29 +132,15 @@ async function run() {
       return;
     }
 
-    const git = simpleGit();
-    await git.addRemote('repo', url);
-    await git.fetch('repo');
-    await git.checkout(branch);
+    const git = await checkoutToBranch(branch);
 
-    const octokit = github.getOctokit(token);
-    const { context = {} } = github;
-    const { pull_request } = context.payload;
+    // Extract files that changed in PR.
+    const changedFilePaths = await getChangedFilesPaths();
 
-    const owner = env.GITHUB_REPOSITORY.split('/')[0];
-    const repo = env.GITHUB_REPOSITORY.split('/')[1];
+    core.info('Changed files paths: ' + JSON.stringify(changedFilePaths));
 
-    const changedFilePaths = await getChangedFilesPaths(
-      pull_request,
-      octokit,
-      owner,
-      repo
-    );
-
-    core.info('Changed Files paths: ' + JSON.stringify(changedFilePaths));
-
-    // Removec files matching ignore paths regex
-    let filesToCheck = changedFilePaths.map((e) => {
+    // Remove files matching ignore paths regex
+    const filesToCheck = changedFilePaths.map((e) => {
       for (let i = 0; i < ignorePaths.length; i++) {
         if (matchExact(ignorePaths[i], e)) {
           return null;
@@ -110,45 +152,13 @@ async function run() {
     core.info('Files to check: ' + JSON.stringify(filesToCheck));
 
     // Store modified files
-    const filesToCommit = [];
-
-    // Perform EOF newline check
-    for (let i = 0; i < filesToCheck.length; i++) {
-      if (filesToCheck[i] !== null) {
-        const data = fs.readFileSync(filesToCheck[i], {
-          encoding: 'utf8',
-          flag: 'r'
-        });
-        const fixedData = fixNewLineEOF(data);
-        if (data !== fixedData) {
-          filesToCommit.push(filesToCheck[i]);
-          fs.writeFileSync(filesToCheck[i], fixedData, 'utf8');
-        }
-      }
-    }
+    const filesToCommit = fixFiles(filesToCheck);
 
     // Log Changed files
     core.info('Files to commit: ' + JSON.stringify(filesToCommit));
 
     // Generate DIff and commit changes
-    const diff = await exec.exec('git', ['diff', '--quiet'], {
-      ignoreReturnCode: true
-    });
-
-    if (diff) {
-      await core.group('push changes', async () => {
-        await git.addConfig(
-          'user.email',
-          `${env.GITHUB_ACTOR}@users.noreply.github.com`
-        );
-        await git.addConfig('user.name', env.GITHUB_ACTOR);
-        await git.add(filesToCommit);
-        await git.commit(commitMessage);
-        await git.push('repo', branch);
-      });
-    } else {
-      console.log('No changes to make');
-    }
+    await commitChanges(filesToCommit, commitMessage, git, branch);
   } catch (error) {
     core.setFailed(error);
   }
