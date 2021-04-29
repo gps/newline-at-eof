@@ -1,0 +1,26 @@
+{
+  "name": "newline-at-eof",
+  "version": "1.0.0",
+  "description": "A GitHub Action that ensures that files end with exactly 1 newline at end of file",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gps/newline-at-eof.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gps/newline-at-eof/issues"
+  },
+  "homepage": "https://github.com/gps/newline-at-eof#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.7",
+    "@actions/exec": "^1.0.4",
+    "@actions/github": "^4.0.0",
+    "fs-extra": "^9.1.0",
+    "simple-git": "^2.38.0",
+    "what-the-diff": "^0.6.0"
+  }
+}

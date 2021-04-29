@@ -1,0 +1,15 @@
+name: 'Newline At EOF'
+description: 'Ensures all files that have changed in a PR have exactly 1 newline at EOF'
+inputs:
+  GH_TOKEN:
+    description: GitHub Token used to interact with GitHub API
+    required: true
+  IGNORE_FILE_PATTERNS:
+    description: Regular expressions for the files to be ignored. The inputs are specified within square brackets where each input regular expression is enclosed within double quotes, comma separated and with correct indentations.
+    required: false
+  COMMIT_MESSAGE:
+    description: Commit message to use when commiting fixes.
+    required: false
+runs:
+  using: node12
+  main: 'dist/index.js'
