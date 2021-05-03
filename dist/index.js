@@ -86,6 +86,8 @@ function checkFilesForEOF(filesToCheck) {
         if (data !== fixedData) {
           filesToCommit.push(filesToCheck[i]);
           fs.writeFileSync(filesToCheck[i], fixedData, 'utf8');
+        } else {
+          core.info(`Skipping file with non UTF-8 encoding ${filesToCheck[i]}`);
         }
       }
     }
