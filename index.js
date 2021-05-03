@@ -4,7 +4,7 @@ const github = require('@actions/github');
 const { parse: gitDiffParser } = require('what-the-diff');
 const fs = require('fs-extra');
 const simpleGit = require('simple-git');
-const detectCharacterEncoding = require('detect-character-encoding');
+const isBinaryFileSync = require('isbinaryfile').isBinaryFileSync;
 const env = process.env;
 
 function matchExact(r, str) {
@@ -72,15 +72,17 @@ function checkFilesForEOF(filesToCheck) {
   for (let i = 0; i < filesToCheck.length; i++) {
     if (filesToCheck[i] !== null) {
       let data = fs.readFileSync(filesToCheck[i]);
-      const charsetEncoding = detectCharacterEncoding(data);
-      if (charsetEncoding.encoding === 'UTF-8') {
+      const isBinary = isBinaryFileSync(data);
+      // compliment of no extension (regex matches filenames with no extensions)
+      const hasExtension = !matchExact('^.[^.]*$', filesToCheck[i]);
+      if (!isBinary && hasExtension) {
         data = data.toString();
         const fixedData = fixNewLineEOF(data);
         if (data !== fixedData) {
           filesToCommit.push(filesToCheck[i]);
           fs.writeFileSync(filesToCheck[i], fixedData, 'utf8');
         } else {
-          core.info(`Skipping file with non UTF-8 encoding ${filesToCheck[i]}`);
+          core.info(`Skipping binary file with no extension ${filesToCheck[i]}`);
         }
       }
     }
@@ -117,8 +119,10 @@ async function run() {
 
   if (!ignorePaths) {
     ignorePaths = [];
+    ignorePaths.push(['.*\\.exe$']);
   } else {
     ignorePaths = JSON.parse(ignorePaths);
+    ignorePaths.push(['.*\\.exe$']);
   }
   core.info('Ignore File Patterns: ' + JSON.stringify(ignorePaths));
 
