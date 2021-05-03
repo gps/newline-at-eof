@@ -88,9 +88,9 @@ function checkFilesForEOF(filesToCheck) {
         if (data !== fixedData) {
           filesToCommit.push(filesToCheck[i]);
           fs.writeFileSync(filesToCheck[i], fixedData, 'utf8');
-        } else {
-          core.info(`Skipping binary file with no extension ${filesToCheck[i]}`);
         }
+      } else {
+        core.info(`Skipping binary file with no extension ${filesToCheck[i]}`);
       }
     }
   }
