@@ -4,6 +4,7 @@ const github = require('@actions/github');
 const { parse: gitDiffParser } = require('what-the-diff');
 const fs = require('fs-extra');
 const simpleGit = require('simple-git');
+const detectCharacterEncoding = require('detect-character-encoding');
 const env = process.env;
 
 function matchExact(r, str) {
@@ -70,14 +71,15 @@ function checkFilesForEOF(filesToCheck) {
 
   for (let i = 0; i < filesToCheck.length; i++) {
     if (filesToCheck[i] !== null) {
-      const data = fs.readFileSync(filesToCheck[i], {
-        encoding: 'utf8',
-        flag: 'r'
-      });
-      const fixedData = fixNewLineEOF(data);
-      if (data !== fixedData) {
-        filesToCommit.push(filesToCheck[i]);
-        fs.writeFileSync(filesToCheck[i], fixedData, 'utf8');
+      let data = fs.readFileSync(filesToCheck[i]);
+      const charsetEncoding = detectCharacterEncoding(data);
+      if (charsetEncoding.encoding === 'UTF-8') {
+        data = data.toString();
+        const fixedData = fixNewLineEOF(data);
+        if (data !== fixedData) {
+          filesToCommit.push(filesToCheck[i]);
+          fs.writeFileSync(filesToCheck[i], fixedData, 'utf8');
+        }
       }
     }
   }
