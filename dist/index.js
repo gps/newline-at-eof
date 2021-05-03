@@ -11,6 +11,7 @@ const github = __nccwpck_require__(5438);
 const { parse: gitDiffParser } = __nccwpck_require__(6426);
 const fs = __nccwpck_require__(5630);
 const simpleGit = __nccwpck_require__(1477);
+const detectCharacterEncoding = __nccwpck_require__(1379);
 const env = process.env;
 
 function matchExact(r, str) {
@@ -77,14 +78,15 @@ function checkFilesForEOF(filesToCheck) {
 
   for (let i = 0; i < filesToCheck.length; i++) {
     if (filesToCheck[i] !== null) {
-      const data = fs.readFileSync(filesToCheck[i], {
-        encoding: 'utf8',
-        flag: 'r'
-      });
-      const fixedData = fixNewLineEOF(data);
-      if (data !== fixedData) {
-        filesToCommit.push(filesToCheck[i]);
-        fs.writeFileSync(filesToCheck[i], fixedData, 'utf8');
+      let data = fs.readFileSync(filesToCheck[i]);
+      const charsetEncoding = detectCharacterEncoding(data);
+      if (charsetEncoding.encoding === 'UTF-8') {
+        data = data.toString();
+        const fixedData = fixNewLineEOF(data);
+        if (data !== fixedData) {
+          filesToCommit.push(filesToCheck[i]);
+          fs.writeFileSync(filesToCheck[i], fixedData, 'utf8');
+        }
       }
     }
   }
@@ -6135,6 +6137,25 @@ class Deprecation extends Error {
 }
 
 exports.Deprecation = Deprecation;
+
+
+/***/ }),
+
+/***/ 1379:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const bindings = require(__nccwpck_require__.ab + "build/Release/icuWrapper.node");
+
+module.exports = buf => {
+	if (!Buffer.isBuffer(buf)) {
+		throw new TypeError('Argument to detect-character-encoding must be a buffer.');
+	}
+
+	return bindings.detectCharacterEncoding(buf);
+};
 
 
 /***/ }),
