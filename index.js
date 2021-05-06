@@ -99,7 +99,7 @@ async function commitChanges(filesToCommit, commitMessage, git, branch) {
   if (diff) {
     await core.group('push changes', async () => {
       await git.addConfig('user.email', `actions@github.com`);
-      await git.addConfig('user.name', 'Github Actions');
+      await git.addConfig('user.name', 'GitHub Actions');
       await git.add(filesToCommit);
       await git.commit(commitMessage);
       await git.push('repo', branch);
