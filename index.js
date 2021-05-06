@@ -47,7 +47,7 @@ async function getChangedFilesPaths(token) {
   const parsedDiff = gitDiffParser(pullRequestDiff);
 
   const changedFilePaths = parsedDiff.map((e) => {
-    return e['newPath'].replace('b/', '');
+    return e['newPath'].replace(/^b\//, '');
   });
 
   return changedFilePaths;
