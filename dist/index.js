@@ -54,7 +54,11 @@ async function getChangedFilesPaths(token) {
   const parsedDiff = gitDiffParser(pullRequestDiff);
 
   const changedFilePaths = parsedDiff.map((e) => {
-    return e['newPath'].replace(/^b\//, '');
+    if (e['newPath']) {
+      return e['newPath'].replace(/^b\//, '');
+    } else {
+      return null;
+    }
   });
 
   return changedFilePaths;
@@ -153,12 +157,16 @@ async function run() {
 
     // Remove files matching ignore paths regex
     const filesToCheck = changedFilePaths.map((e) => {
-      for (let i = 0; i < ignorePaths.length; i++) {
-        if (matchExact(ignorePaths[i], e)) {
-          return null;
+      if (e !== null) {
+        for (let i = 0; i < ignorePaths.length; i++) {
+          if (matchExact(ignorePaths[i], e)) {
+            return null;
+          }
         }
+        return e;
+      } else {
+        return null;
       }
-      return e;
     });
 
     core.info('Files to check: ' + JSON.stringify(filesToCheck));
