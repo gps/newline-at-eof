@@ -117,6 +117,7 @@ async function run() {
   const token = core.getInput('GH_TOKEN');
   let ignorePaths = core.getInput('IGNORE_FILE_PATTERNS');
   let commitMessage = core.getInput('COMMIT_MESSAGE');
+  const block_commit = core.getInput('BLOCK_COMMIT');
 
   if (!ignorePaths) {
     ignorePaths = [];
@@ -171,7 +172,9 @@ async function run() {
     core.info('Files to commit: ' + JSON.stringify(filesToCommit));
 
     // Generate DIff and commit changes
-    await commitChanges(filesToCommit, commitMessage, git, branch);
+    if (!block_commit) {
+      await commitChanges(filesToCommit, commitMessage, git, branch);
+    }
   } catch (error) {
     core.setFailed(error);
   }
