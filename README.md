@@ -44,3 +44,26 @@ If unspecified, it defaults to the following message:
       ]
     COMMIT_MESSAGE: 'Fix formatting'
 ```
+
+Or it can be used in conjunction with other formatting tools and commit using third-party GitHub commit action.
+
+```yml
+- name: Check newline at EOF
+  uses: gps/newline-at-eof@master
+  with:
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    IGNORE_FILE_PATTERNS: |
+      [
+        "dist/.*",
+        "package-lock.json"
+      ]
+    BLOCK_COMMIT: true
+
+- name: Run formatter
+  run: npm run format
+
+- name: Commit changes
+  uses: stefanzweifel/git-auto-commit-action@v4
+  with:
+    commit_message: Format code
+```

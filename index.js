@@ -171,8 +171,8 @@ async function run() {
     // Log Changed files
     core.info('Files to commit: ' + JSON.stringify(filesToCommit));
 
-    // Generate DIff and commit changes
     if (!block_commit) {
+      // Generate DIff and commit changes
       await commitChanges(filesToCommit, commitMessage, git, branch);
     }
   } catch (error) {
