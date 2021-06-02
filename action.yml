@@ -10,6 +10,9 @@ inputs:
   COMMIT_MESSAGE:
     description: Commit message to use when commiting fixes.
     required: false
+  COMMIT_AND_PUSH_CHANGES:
+    description: Prevent action from making a commit and pushing the changes to remote.
+    required: false
 runs:
   using: node12
   main: 'dist/index.js'
