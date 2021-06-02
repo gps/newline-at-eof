@@ -10,7 +10,7 @@ inputs:
   COMMIT_MESSAGE:
     description: Commit message to use when commiting fixes.
     required: false
-  BLOCK_COMMIT:
+  COMMIT_AND_PUSH_CHANGES:
     description: Prevent actoion from making a commit and pushing the changes to remote.
     required: false
 runs:

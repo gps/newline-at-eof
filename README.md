@@ -20,15 +20,26 @@ Path to ignore while checkking for newline at EOF.
 
 ### `COMMIT_MESSAGE`
 
-Commit message to post when making a fix commit
+Commit message to post when making a fix commit.
 
-**Required**
+**Optional**
 
 **Default Value**
 
 If unspecified, it defaults to the following message:
 
 "Fix formatting"
+
+### `COMMIT_AND_PUSH_CHANGES`
+
+Whether to commit and push the changes to the remote.
+It takes boolean values.
+
+**Optional**
+
+**Default Value**
+
+If unspecified, it defaults to true.
 
 ## Example Usage
 
@@ -57,7 +68,7 @@ Or it can be used in conjunction with other formatting tools and commit using th
         "dist/.*",
         "package-lock.json"
       ]
-    BLOCK_COMMIT: true
+    COMMIT_AND_PUSH_CHANGES: false
 
 - name: Run formatter
   run: npm run format
