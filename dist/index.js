@@ -124,6 +124,7 @@ async function run() {
   const token = core.getInput('GH_TOKEN');
   let ignorePaths = core.getInput('IGNORE_FILE_PATTERNS');
   let commitMessage = core.getInput('COMMIT_MESSAGE');
+  let commitAndPushChanges = core.getInput('COMMIT_AND_PUSH_CHANGES');
 
   if (!ignorePaths) {
     ignorePaths = [];
@@ -138,6 +139,10 @@ async function run() {
     commitMessage = 'Fix formatting';
   }
 
+  if (commitAndPushChanges !== false) {
+    commitAndPushChanges = true;
+  }
+  
   try {
     // Extract branch name if pull request else break execution.
     let branch;
@@ -177,8 +182,10 @@ async function run() {
     // Log Changed files
     core.info('Files to commit: ' + JSON.stringify(filesToCommit));
 
-    // Generate DIff and commit changes
-    await commitChanges(filesToCommit, commitMessage, git, branch);
+    if (commitAndPushChanges) {
+      // Generate DIff and commit changes
+      await commitChanges(filesToCommit, commitMessage, git, branch);
+    }
   } catch (error) {
     core.setFailed(error);
   }
