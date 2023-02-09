@@ -1,5 +1,5 @@
-name: 'Newline At EOF'
-description: 'Ensures all files that have changed in a PR have exactly 1 newline at EOF'
+name: "Newline At EOF"
+description: "Ensures all files that have changed in a PR have exactly 1 newline at EOF"
 inputs:
   GH_TOKEN:
     description: GitHub Token used to interact with GitHub API
@@ -14,5 +14,5 @@ inputs:
     description: Prevent action from making a commit and pushing the changes to remote.
     required: false
 runs:
-  using: node12
-  main: 'dist/index.js'
+  using: node16
+  main: "dist/index.js"
