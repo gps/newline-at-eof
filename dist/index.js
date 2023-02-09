@@ -42,7 +42,7 @@ async function getChangedFilesPaths(token) {
   const owner = env.GITHUB_REPOSITORY.split("/")[0];
   const repo = env.GITHUB_REPOSITORY.split("/")[1];
 
-  const { data: pullRequestDiff } = await octokit.pulls.get({
+  const { data: pullRequestDiff } = await octokit.rest.pulls.get({
     owner: owner,
     repo: repo,
     pull_number: pull_request.number,
