@@ -1,10 +1,10 @@
-const exec = require('@actions/exec');
-const core = require('@actions/core');
-const github = require('@actions/github');
-const { parse: gitDiffParser } = require('what-the-diff');
-const fs = require('fs-extra');
-const simpleGit = require('simple-git');
-const isBinaryFileSync = require('isbinaryfile').isBinaryFileSync;
+const exec = require("@actions/exec");
+const core = require("@actions/core");
+const github = require("@actions/github");
+const { parse: gitDiffParser } = require("what-the-diff");
+const fs = require("fs-extra");
+const simpleGit = require("simple-git");
+const isBinaryFileSync = require("isbinaryfile").isBinaryFileSync;
 const env = process.env;
 
 function matchExact(r, str) {
@@ -14,14 +14,14 @@ function matchExact(r, str) {
 
 function fixNewLineEOF(b) {
   // Replace all trailing whitespaces
-  b = b.replace(/[ \t\n]*$/, '\n');
+  b = b.replace(/[ \t\n]*$/, "\n");
 
   if (b.length === 1) {
     // if the remaining character is a whitespace
     if (/[ \t\n]*$/.test(b)) {
-      return '';
+      return "";
     } else {
-      return b + '\n';
+      return b + "\n";
     }
   }
   return b;
@@ -32,23 +32,23 @@ async function getChangedFilesPaths(token) {
   const { context = {} } = github;
   const { pull_request } = context.payload;
 
-  const owner = env.GITHUB_REPOSITORY.split('/')[0];
-  const repo = env.GITHUB_REPOSITORY.split('/')[1];
+  const owner = env.GITHUB_REPOSITORY.split("/")[0];
+  const repo = env.GITHUB_REPOSITORY.split("/")[1];
 
   const { data: pullRequestDiff } = await octokit.pulls.get({
-    owner,
-    repo,
+    owner: owner,
+    repo: repo,
     pull_number: pull_request.number,
     mediaType: {
-      format: 'diff'
-    }
+      format: "diff",
+    },
   });
 
   const parsedDiff = gitDiffParser(pullRequestDiff);
 
   const changedFilePaths = parsedDiff.map((e) => {
-    if (e['newPath']) {
-      return e['newPath'].replace(/^b\//, '');
+    if (e["newPath"]) {
+      return e["newPath"].replace(/^b\//, "");
     } else {
       return null;
     }
@@ -64,8 +64,8 @@ async function checkoutToBranch(branch, token) {
   );
 
   const git = simpleGit();
-  await git.addRemote('repo', url);
-  await git.fetch('repo');
+  await git.addRemote("repo", url);
+  await git.fetch("repo");
   await git.checkout(branch);
   return git;
 }
@@ -78,13 +78,13 @@ function checkFilesForEOF(filesToCheck) {
       let data = fs.readFileSync(filesToCheck[i]);
       const isBinary = isBinaryFileSync(data);
       // compliment of no extension (regex matches filenames with no extensions)
-      const hasExtension = !matchExact('^.[^.]*$', filesToCheck[i]);
+      const hasExtension = !matchExact("^.[^.]*$", filesToCheck[i]);
       if (!isBinary && hasExtension) {
         data = data.toString();
         const fixedData = fixNewLineEOF(data);
         if (data !== fixedData) {
           filesToCommit.push(filesToCheck[i]);
-          fs.writeFileSync(filesToCheck[i], fixedData, 'utf8');
+          fs.writeFileSync(filesToCheck[i], fixedData, "utf8");
         }
       } else {
         core.info(`Skipping binary file with no extension ${filesToCheck[i]}`);
@@ -96,53 +96,53 @@ function checkFilesForEOF(filesToCheck) {
 }
 
 async function commitChanges(filesToCommit, commitMessage, git, branch) {
-  const diff = await exec.exec('git', ['diff', '--quiet'], {
-    ignoreReturnCode: true
+  const diff = await exec.exec("git", ["diff", "--quiet"], {
+    ignoreReturnCode: true,
   });
 
   if (diff) {
-    await core.group('push changes', async () => {
-      await git.addConfig('user.email', `actions@github.com`);
-      await git.addConfig('user.name', 'GitHub Actions');
+    await core.group("push changes", async () => {
+      await git.addConfig("user.email", `actions@github.com`);
+      await git.addConfig("user.name", "GitHub Actions");
       await git.add(filesToCommit);
       await git.commit(commitMessage);
-      await git.push('repo', branch);
+      await git.push("repo", branch);
     });
   } else {
-    console.log('No changes to make');
+    console.log("No changes to make");
   }
 }
 
 async function run() {
-  const token = core.getInput('GH_TOKEN');
-  let ignorePaths = core.getInput('IGNORE_FILE_PATTERNS');
-  let commitMessage = core.getInput('COMMIT_MESSAGE');
-  let commitAndPushChanges = core.getInput('COMMIT_AND_PUSH_CHANGES');
+  const token = core.getInput("GH_TOKEN");
+  let ignorePaths = core.getInput("IGNORE_FILE_PATTERNS");
+  let commitMessage = core.getInput("COMMIT_MESSAGE");
+  let commitAndPushChanges = core.getInput("COMMIT_AND_PUSH_CHANGES");
 
   if (!ignorePaths) {
     ignorePaths = [];
-    ignorePaths.push(['.*\\.exe$']);
+    ignorePaths.push([".*\\.exe$"]);
   } else {
     ignorePaths = JSON.parse(ignorePaths);
-    ignorePaths.push(['.*\\.exe$']);
+    ignorePaths.push([".*\\.exe$"]);
   }
-  core.info('Ignore File Patterns: ' + JSON.stringify(ignorePaths));
+  core.info("Ignore File Patterns: " + JSON.stringify(ignorePaths));
 
   if (!commitMessage) {
-    commitMessage = 'Fix formatting';
+    commitMessage = "Fix formatting";
   }
 
   if (commitAndPushChanges !== false) {
     commitAndPushChanges = true;
   }
-  
+
   try {
     // Extract branch name if pull request else break execution.
     let branch;
-    if (github.context.eventName == 'pull_request') {
+    if (github.context.eventName == "pull_request") {
       branch = github.context.payload.pull_request.head.ref;
     } else {
-      core.error('This action will only work on Pull Requests. Exiting.');
+      core.error("This action will only work on Pull Requests. Exiting.");
       return;
     }
 
@@ -151,7 +151,7 @@ async function run() {
     // Extract files that changed in PR.
     const changedFilePaths = await getChangedFilesPaths(token);
 
-    core.info('Changed files paths: ' + JSON.stringify(changedFilePaths));
+    core.info("Changed files paths: " + JSON.stringify(changedFilePaths));
 
     // Remove files matching ignore paths regex
     const filesToCheck = changedFilePaths.map((e) => {
@@ -167,13 +167,13 @@ async function run() {
       }
     });
 
-    core.info('Files to check: ' + JSON.stringify(filesToCheck));
+    core.info("Files to check: " + JSON.stringify(filesToCheck));
 
     // Store modified files
     const filesToCommit = checkFilesForEOF(filesToCheck);
 
     // Log Changed files
-    core.info('Files to commit: ' + JSON.stringify(filesToCommit));
+    core.info("Files to commit: " + JSON.stringify(filesToCommit));
 
     if (commitAndPushChanges) {
       // Generate DIff and commit changes
