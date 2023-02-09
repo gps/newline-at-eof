@@ -187,7 +187,8 @@ async function run() {
       await commitChanges(filesToCommit, commitMessage, git, branch);
     }
   } catch (error) {
-    core.setFailed(error);
+    console.log(error);
+    throw error;
   }
 }
 
