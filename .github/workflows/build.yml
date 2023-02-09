@@ -1,4 +1,4 @@
-name: Build Package to use ncc
+name: Build package with ncc
 on: [pull_request]
 
 jobs:
