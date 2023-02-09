@@ -180,6 +180,7 @@ async function run() {
       await commitChanges(filesToCommit, commitMessage, git, branch);
     }
   } catch (error) {
+    console.log(error);
     throw error;
   }
 }
