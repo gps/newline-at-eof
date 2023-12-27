@@ -175,7 +175,7 @@ async function run() {
     // Log Changed files
     core.info("Files to commit: " + JSON.stringify(filesToCommit));
 
-    if (commitAndPushChanges) {
+    if (commitAndPushChanges === true) {
       // Generate DIff and commit changes
       await commitChanges(filesToCommit, commitMessage, git, branch);
     }
