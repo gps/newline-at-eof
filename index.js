@@ -109,7 +109,7 @@ async function commitChanges(filesToCommit, commitMessage, git, branch) {
       await git.push("repo", branch);
     });
   } else {
-    console.log("No changes to make");
+    core.info("No changes to make");
   }
 }
 
@@ -133,6 +133,7 @@ async function run() {
   }
 
   if (commitAndPushChanges !== false) {
+    core.info("Setting Commit and Push to True");
     commitAndPushChanges = true;
   }
 
@@ -177,10 +178,11 @@ async function run() {
 
     if (commitAndPushChanges === true) {
       // Generate DIff and commit changes
+      core.info("Attempting Committing Changes.");
       await commitChanges(filesToCommit, commitMessage, git, branch);
     }
   } catch (error) {
-    console.log(error);
+    core.error(error);
     throw error;
   }
 }
